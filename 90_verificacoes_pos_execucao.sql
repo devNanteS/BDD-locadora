@@ -1,7 +1,7 @@
 /*
 ============================================================
   Arquivo: 90_verificacoes_pos_execucao.sql
-  Autor(es):
+	Autor(es):
     Leonardo Giannoccaro Nantes
     Pietro di Luca Monte Souza Balbino
     Matheus Gonçalves Domingues Geraldi
@@ -35,7 +35,7 @@ SELECT 'seguro' AS tabela, COUNT(*) FROM seguro
 UNION ALL
 SELECT 'combustivel' AS tabela, COUNT(*) FROM combustivel 
 UNION ALL
-SELECT 'usuario' AS tabela, COUNT(*) FROM usuario; 
+SELECT 'usuario' AS tabela, COUNT(*) FROM usuario;
 
 -- Resultado esperado (aproximado, com base nos scripts):
 -- cliente (7), veiculo (12), locacao (10), funcionario (5), manutencao (5)

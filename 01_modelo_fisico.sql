@@ -15,15 +15,17 @@
   Execução esperada: rodar primeiro, em BD vazio
 ==========================================================
 */
-drop database locadora;
-create database if not exists locadora;
-use locadora;
+
+CREATE DATABASE locadora;
+USE locadora;
+
+-- 2. Tabelas Independentes (Catálogos e Cadastros Básicos)
 
 CREATE TABLE IF NOT EXISTS usuario (
     id_usuario INT NOT NULL AUTO_INCREMENT,
     email VARCHAR(100) NOT NULL UNIQUE,
     senha VARCHAR(255) NOT NULL,
-    perfil VARCHAR(100) NOT NULL,
+    perfil VARCHAR(100) NOT NULL, -- 'Funcionario' ou 'Cliente'
     PRIMARY KEY (id_usuario)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
@@ -47,41 +49,11 @@ CREATE TABLE IF NOT EXISTS cnh (
     PRIMARY KEY (id_cnh)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
-CREATE TABLE IF NOT EXISTS cliente (
-    id_cliente              INT NOT NULL AUTO_INCREMENT,
-    nome_completo           VARCHAR(255) NOT NULL,
-    cpf                     VARCHAR(14) NOT NULL UNIQUE, 
-    data_nascimento         DATE NOT NULL,
-    telefone                VARCHAR(20) NOT NULL,
-    email                   VARCHAR(100) NOT NULL UNIQUE, 
-    tempo_habilitacao_anos  INT NOT NULL,
-    id_endereco             INT NOT NULL,
-    id_cnh                  INT NOT NULL UNIQUE, 
-    PRIMARY KEY (id_cliente),
-    FOREIGN KEY (id_endereco) REFERENCES endereco(id_endereco),
-    FOREIGN KEY (id_cnh) REFERENCES cnh(id_cnh)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
-
 CREATE TABLE IF NOT EXISTS cargo (
     id_cargo                INT NOT NULL AUTO_INCREMENT,
     nome_cargo              VARCHAR(100) NOT NULL,
     descricao_permissoes    TEXT NOT NULL,
     PRIMARY KEY (id_cargo)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
-
-CREATE TABLE IF NOT EXISTS funcionario (
-    id_usuario      INT NOT NULL AUTO_INCREMENT, 
-    nome            VARCHAR(255) NOT NULL,
-    cpf             VARCHAR(14) NOT NULL UNIQUE,
-    rg				VARCHAR(9) NOT NULL UNIQUE,
-    data_nascimento DATE NOT NULL,
-    email           VARCHAR(100) NOT NULL UNIQUE,
-    senha           VARCHAR(255) NOT NULL, 
-    id_cargo        INT NOT NULL,
-    id_endereco		INT NOT NULL,
-    PRIMARY KEY (id_usuario),
-    FOREIGN KEY (id_cargo) REFERENCES cargo(id_cargo),
-    FOREIGN KEY (id_endereco) REFERENCES endereco(id_endereco)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 CREATE TABLE IF NOT EXISTS marca (
@@ -95,16 +67,6 @@ CREATE TABLE IF NOT EXISTS categoria_veiculo (
     nome_categoria VARCHAR(100) NOT NULL,
     valor_diaria DECIMAL(10,2) NOT NULL,
     PRIMARY KEY (id_categoria_veiculo)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
-
-CREATE TABLE IF NOT EXISTS modelo (
-    id_modelo INT NOT NULL AUTO_INCREMENT,
-    nome_modelo VARCHAR(100) NOT NULL,
-    id_marca INT NOT NULL,
-    id_categoria_veiculo INT NOT NULL,
-    PRIMARY KEY (id_modelo),
-    FOREIGN KEY (id_marca) REFERENCES marca(id_marca),
-    FOREIGN KEY (id_categoria_veiculo) REFERENCES categoria_veiculo(id_categoria_veiculo)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 CREATE TABLE IF NOT EXISTS status_veiculo (
@@ -126,6 +88,62 @@ CREATE TABLE IF NOT EXISTS seguro (
     PRIMARY KEY (id_seguro)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
+CREATE TABLE IF NOT EXISTS forma_pagamento (
+    id_forma_pagamento      INT NOT NULL AUTO_INCREMENT,
+    descricao_pagamento     VARCHAR(100) NOT NULL, 
+    PRIMARY KEY (id_forma_pagamento)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- Tabela Opcional corrigida (SEM quantidade, pois é um catálogo)
+CREATE TABLE IF NOT EXISTS opcional (
+    id_opcional     INT NOT NULL AUTO_INCREMENT,
+    descricao       VARCHAR(255) NOT NULL,
+    valor_diaria    DECIMAL(10, 2) NOT NULL,
+    PRIMARY KEY (id_opcional)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+
+-- 3. Tabelas Dependentes (Pessoas e Veículos)
+
+CREATE TABLE IF NOT EXISTS cliente (
+    id_cliente              INT NOT NULL AUTO_INCREMENT,
+    nome_completo           VARCHAR(255) NOT NULL,
+    cpf                     VARCHAR(14) NOT NULL UNIQUE, 
+    data_nascimento         DATE NOT NULL,
+    telefone                VARCHAR(20) NOT NULL,
+    email                   VARCHAR(100) NOT NULL UNIQUE, 
+    tempo_habilitacao_anos  INT NOT NULL,
+    id_endereco             INT NOT NULL,
+    id_cnh                  INT NOT NULL UNIQUE, 
+    PRIMARY KEY (id_cliente),
+    FOREIGN KEY (id_endereco) REFERENCES endereco(id_endereco),
+    FOREIGN KEY (id_cnh) REFERENCES cnh(id_cnh)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE IF NOT EXISTS funcionario (
+    id_usuario       INT NOT NULL, -- PK e FK (1:1 com usuario)
+    nome             VARCHAR(255) NOT NULL,
+    cpf              VARCHAR(14) NOT NULL UNIQUE,
+    rg               VARCHAR(9) NOT NULL UNIQUE,
+    data_nascimento  DATE NOT NULL,
+    id_cargo         INT NOT NULL,
+    id_endereco      INT NOT NULL,
+    PRIMARY KEY (id_usuario),
+    FOREIGN KEY (id_usuario) REFERENCES usuario(id_usuario),
+    FOREIGN KEY (id_cargo) REFERENCES cargo(id_cargo),
+    FOREIGN KEY (id_endereco) REFERENCES endereco(id_endereco)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE IF NOT EXISTS modelo (
+    id_modelo INT NOT NULL AUTO_INCREMENT,
+    nome_modelo VARCHAR(100) NOT NULL,
+    id_marca INT NOT NULL,
+    id_categoria_veiculo INT NOT NULL,
+    PRIMARY KEY (id_modelo),
+    FOREIGN KEY (id_marca) REFERENCES marca(id_marca),
+    FOREIGN KEY (id_categoria_veiculo) REFERENCES categoria_veiculo(id_categoria_veiculo)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
 CREATE TABLE IF NOT EXISTS veiculo (
     id_veiculo INT NOT NULL AUTO_INCREMENT,
     placa VARCHAR(8) NOT NULL UNIQUE,
@@ -140,6 +158,7 @@ CREATE TABLE IF NOT EXISTS veiculo (
     tanque INT NOT NULL,
     tanque_fracao DECIMAL(5,4) NOT NULL,
     valor_fracao DECIMAL(10,2) NOT NULL,
+    url_imagem VARCHAR(255) NULL, -- COLUNA DE IMAGEM ADICIONADA AQUI
     id_modelo INT NOT NULL,
     id_status_veiculo INT NOT NULL,
     id_combustivel INT NOT NULL,
@@ -151,6 +170,8 @@ CREATE TABLE IF NOT EXISTS veiculo (
     FOREIGN KEY (id_seguro) REFERENCES seguro(id_seguro)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
+
+-- 4. Tabelas Operacionais (Locação e Manutenção)
 
 CREATE TABLE manutencao (
     id_manutencao INT NOT NULL AUTO_INCREMENT,
@@ -164,7 +185,6 @@ CREATE TABLE manutencao (
     FOREIGN KEY (id_veiculo) REFERENCES veiculo(id_veiculo)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
-
 CREATE TABLE IF NOT EXISTS locacao (
     id_locacao                INT NOT NULL AUTO_INCREMENT,
     data_retirada             DATETIME NOT NULL,
@@ -176,17 +196,17 @@ CREATE TABLE IF NOT EXISTS locacao (
     quilometragem_devolucao   INT NULL,
     id_cliente                INT NOT NULL,
     id_veiculo                INT NOT NULL,
-    id_funcionario                INT NOT NULL,
+    id_funcionario            INT NOT NULL,
+    status                    ENUM('Reserva', 'Locado', 'Chegada') NOT NULL DEFAULT 'Reserva',
+    tanque_saida              INT NOT NULL,
+    tanque_chegada            INT NULL,
+    caucao                    DECIMAL(10, 2) NOT NULL,
+    devolucao                 ENUM('na devolução', '5 dias', '15 dias', '30 dias') NOT NULL,
     PRIMARY KEY (id_locacao),
     FOREIGN KEY (id_cliente) REFERENCES cliente(id_cliente),
     FOREIGN KEY (id_veiculo) REFERENCES veiculo(id_veiculo),
-    FOREIGN KEY (id_funcionario) REFERENCES funcionario(id_usuario) 
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
-
-CREATE TABLE IF NOT EXISTS forma_pagamento (
-    id_forma_pagamento      INT NOT NULL AUTO_INCREMENT,
-    descricao_pagamento     VARCHAR(100) NOT NULL, 
-    PRIMARY KEY (id_forma_pagamento)
+    -- Correção da FK para apontar para o ID correto do funcionário (que é id_usuario)
+    FOREIGN KEY (id_funcionario) REFERENCES funcionario(id_usuario)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 CREATE TABLE IF NOT EXISTS pagamento (
@@ -200,12 +220,12 @@ CREATE TABLE IF NOT EXISTS pagamento (
     FOREIGN KEY (id_forma_pagamento) REFERENCES forma_pagamento(id_forma_pagamento)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
-CREATE TABLE IF NOT EXISTS opcional (
-    id_opcional     INT NOT NULL AUTO_INCREMENT,
-    descricao       VARCHAR(255) NOT NULL,
-    valor_diaria    DECIMAL(10, 2) NOT NULL,
-    quantidade      DECIMAL(10, 2) NOT NULL,
-    id_locacao      INT NOT NULL,
-    PRIMARY KEY (id_opcional),
-    FOREIGN KEY (id_locacao) REFERENCES locacao(id_locacao)
+-- Tabela de ligação Locação <-> Opcional (Onde fica a QUANTIDADE agora)
+CREATE TABLE locacao_opcional (
+    id_locacao_opcional INT AUTO_INCREMENT PRIMARY KEY,
+    id_locacao INT NOT NULL,
+    id_opcional INT NOT NULL,
+    quantidade INT NOT NULL,
+    FOREIGN KEY (id_locacao) REFERENCES locacao(id_locacao),
+    FOREIGN KEY (id_opcional) REFERENCES opcional(id_opcional)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
