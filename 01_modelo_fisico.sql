@@ -158,7 +158,7 @@ CREATE TABLE IF NOT EXISTS veiculo (
     tanque INT NOT NULL,
     tanque_fracao DECIMAL(5,4) NOT NULL,
     valor_fracao DECIMAL(10,2) NOT NULL,
-    url_imagem VARCHAR(255) NULL, -- COLUNA DE IMAGEM ADICIONADA AQUI
+    url_imagem VARCHAR(255) NULL, 
     id_modelo INT NOT NULL,
     id_status_veiculo INT NOT NULL,
     id_combustivel INT NOT NULL,
